@@ -4,6 +4,21 @@ const User = require("../model/authschema");
 const bcrypt = require("bcryptjs");
 
 class AuthController {
+  // Show register page
+  async showRegisterPage(req, res) {
+    res.render("auth/register", {
+      title: "Register",
+      error: null,
+    });
+  }
+
+  // Show login page
+  async showLoginPage(req, res) {
+    res.render("auth/login", {
+      title: "Login",
+      error: null,
+    });
+  }
   // REGISTER
   async register(req, res) {
     try {
@@ -11,13 +26,25 @@ class AuthController {
 
       // validate inputs
       if (!name || !email || !phone || !role || !password) {
-        return res.status(400).json({ message: "All fields are required" });
+        if (req.originalUrl.includes("/api/")) {
+          return res.status(400).json({ message: "All fields are required" });
+        }
+        return res.render("auth/register", {
+          title: "Register",
+          error: "All fields are required",
+        });
       }
 
       // check if user exists
       const existingUser = await User.findOne({ email });
       if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
+        if (req.originalUrl.includes("/api/")) {
+          return res.status(400).json({ message: "User already exists" });
+        }
+        return res.render("auth/register", {
+          title: "Register",
+          error: "User already exists",
+        });
       }
 
       // hash password
@@ -37,11 +64,23 @@ class AuthController {
       // generate token
       const token = generationToken(savedUser._id);
 
-      return res.status(201).json({
-        message: "User registered successfully",
-        user: savedUser,
-        token,
+      // return res.status(201).json({
+      if (req.originalUrl.includes("/api/")) {
+        return res.status(201).json({
+          message: "User registered successfully",
+          user: savedUser,
+          token,
+        });
+      }
+      // For web requests, set cookie and redirect
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       });
+
+      res.redirect("/products");
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal Server Error" });
@@ -54,15 +93,27 @@ class AuthController {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return res.status(400).json({
-          message: "Email and password are required",
+        if (req.originalUrl.includes("/api/")) {
+          return res.status(400).json({
+            message: "Email and password are required",
+          });
+        }
+        return res.render("auth/login", {
+          title: "Login",
+          error: "Email and password are required",
         });
       }
 
       // find user
       const existingUser = await User.findOne({ email });
       if (!existingUser) {
-        return res.status(401).json({
+        if (req.originalUrl.includes("/api/")) {
+          return res.status(401).json({
+            error: "Invalid email or password",
+          });
+        }
+        return res.render("auth/login", {
+          title: "Login",
           error: "Invalid email or password",
         });
       }
@@ -70,7 +121,13 @@ class AuthController {
       // compare password
       const isMatch = await bcrypt.compare(password, existingUser.password);
       if (!isMatch) {
-        return res.status(401).json({
+        if (req.originalUrl.includes("/api/")) {
+          return res.status(401).json({
+            error: "Invalid email or password",
+          });
+        }
+        return res.render("auth/login", {
+          title: "Login",
           error: "Invalid email or password",
         });
       }
@@ -78,26 +135,56 @@ class AuthController {
       // generate token
       const token = generationToken(existingUser._id);
 
-      return res.status(200).json({
-        message: "Login successful",
-        user: existingUser,
-        token,
+      // Check if it's API request
+      if (req.originalUrl.includes("/api/")) {
+        return res.status(200).json({
+          message: "Login successful",
+          user: existingUser,
+          token,
+        });
+      }
+
+      // For web requests, set cookie and redirect
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       });
+
+      res.redirect("/products");
     } catch (err) {
       console.error(err);
-      return res
-        .status(500)
-        .json({ error: "Something went wrong, try again!" });
+      if (req.originalUrl.includes("/api/")) {
+        return res
+          .status(500)
+          .json({ error: "Something went wrong, try again!" });
+      }
+      return res.render("auth/login", {
+        title: "Login",
+        error: "Something went wrong, try again!",
+      });
     }
   }
+
   async logout(req, res) {
     try {
-      // Logout logic
-      res.json({ success: true, message: "Logout successful" });
+      if (req.originalUrl.includes("/api/")) {
+        res.json({ success: true, message: "Logout successful" });
+      } else {
+        res.cookie("token", "", {
+          httpOnly: true,
+          expires: new Date(0),
+        });
+        res.redirect("/auth/login");
+      }
     } catch (error) {
-      res.status(500).json({ success: false, message: "Logout failed" });
+      if (req.originalUrl.includes("/api/")) {
+        res.status(500).json({ success: false, message: "Logout failed" });
+      } else {
+        res.redirect("/auth/login");
+      }
     }
   }
 }
-
 module.exports = new AuthController();

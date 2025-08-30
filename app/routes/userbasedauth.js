@@ -1,41 +1,28 @@
 const express = require("express");
 const ProductController = require("../controller/usercontroller");
 const productimage = require("../helper/multer");
-
 const { AuthCheck, isAdmin } = require("../middleware/authcheck");
 
 const router = express.Router();
 
-// Get all products
+// Web Routes
 router.get("/", AuthCheck, ProductController.index);
-
-// Get single product by ID (for editing)
-router.get("/edit/product/:id", AuthCheck, ProductController.getProduct);
-
-// Create new product
+router.get("/add", AuthCheck, isAdmin, ProductController.showAddProductForm);
 router.post(
-  "/create-product",
-  productimage.single("image"),
+  "/",
   AuthCheck,
   isAdmin,
+  productimage.single("image"),
   ProductController.createProduct
 );
-
-// Update product (using POST since HTML forms don't support PUT)
+router.get("/edit/:id", AuthCheck, isAdmin, ProductController.getProduct);
 router.post(
-  "/update/product/:id",
-  productimage.single("image"),
+  "/edit/:id",
   AuthCheck,
   isAdmin,
+  productimage.single("image"),
   ProductController.updateProduct
 );
-
-// Delete product
-router.delete(
-  "/delete/product/:id",
-  AuthCheck,
-  isAdmin,
-  ProductController.deleteProduct
-);
+router.delete("/:id", AuthCheck, isAdmin, ProductController.deleteProduct);
 
 module.exports = router;

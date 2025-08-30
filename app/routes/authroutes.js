@@ -3,6 +3,10 @@ const AuthController = require("../controller/authcontroller");
 
 const router = express.Router();
 
+// GET routes to show the pages
+router.get("/login", AuthController.showLoginPage);
+router.get("/register", AuthController.showRegisterPage);
+
 // Auth routes using the controller methods
 router.post("/register", AuthController.register);
 router.post("/login", AuthController.login);

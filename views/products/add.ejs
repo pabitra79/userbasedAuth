@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Product - Admin Panel</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="/css/style.css" rel="stylesheet" />
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="p-4">
+        <h4 class="mb-0">Admin Panel</h4>
+        <p class="mb-0 small">Welcome, <%= user.name %></p>
+        <small class="text-muted"><%= user.role %></small>
+      </div>
+
+      <ul class="nav flex-column px-3">
+        <li class="nav-item">
+          <a class="nav-link" href="/products">
+            <i class="fas fa-box me-2"></i> Products
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="/products/add">
+            <i class="fas fa-plus me-2"></i> Add Product
+          </a>
+        </li>
+        <li class="nav-item mt-4">
+          <a class="nav-link text-danger" href="/auth/logout">
+            <i class="fas fa-sign-out-alt me-2"></i> Logout
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="mb-0">Add New Product</h2>
+          <p class="text-muted">Create a new product in your inventory</p>
+        </div>
+        <a href="/products" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-2"></i>Back to Products
+        </a>
+      </div>
+
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-body p-4">
+              <% if (error) { %>
+              <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i><%= error %>
+              </div>
+              <% } %>
+
+              <form
+                action="/products"
+                method="POST"
+                enctype="multipart/form-data"
+              >
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="name" class="form-label">Product Name *</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="name"
+                      name="name"
+                      required
+                    />
+                  </div>
+
+                  <div class="col-md-6 mb-3">
+                    <label for="price" class="form-label">Price *</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="price"
+                        name="price"
+                        step="0.01"
+                        min="0"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="category" class="form-label">Category *</label>
+                    <select
+                      class="form-select"
+                      id="category"
+                      name="category"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      <option value="electronics">Electronics</option>
+                      <option value="clothing">Clothing</option>
+                      <option value="furniture">Furniture</option>
+                      <option value="men">Men</option>
+                      <option value="Cafe">Cafe</option>
+                      <option value="women">Women</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6 mb-3">
+                    <label for="brand" class="form-label">Brand *</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="brand"
+                      name="brand"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="size" class="form-label">Size *</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="size"
+                      name="size"
+                      placeholder="e.g., S,M,L or 32,34,36"
+                      required
+                    />
+                    <div class="form-text">
+                      Separate multiple sizes with commas
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 mb-3">
+                    <label for="color" class="form-label">Color *</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="color"
+                      name="color"
+                      placeholder="e.g., Red,Blue,Green"
+                      required
+                    />
+                    <div class="form-text">
+                      Separate multiple colors with commas
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="image" class="form-label">Product Image *</label>
+                  <input
+                    type="file"
+                    class="form-control"
+                    id="image"
+                    name="image"
+                    accept="image/*"
+                    required
+                    onchange="previewImage(event)"
+                  />
+                  <div class="form-text">
+                    Upload a clear image of the product
+                  </div>
+                  <img
+                    id="imagePreview"
+                    class="image-preview mt-3"
+                    alt="Image Preview"
+                  />
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                  <a href="/products" class="btn btn-outline-secondary me-md-2">
+                    <i class="fas fa-times me-2"></i>Cancel
+                  </a>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Save Product
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/public/js/all.js">
+    
+    </script>
+  </body>
+</html>
